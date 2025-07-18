@@ -127,7 +127,7 @@ const MyNotes: React.FC = () => {
 
   const handleCreateNote = async (noteData: { title?: string; content: string }) => {
     try {
-      await apiClient.createNote(noteData);
+      const newNote = await apiClient.createNote(noteData);
       setIsCreateModalOpen(false);
 
       // Navigate to page 1 to see the new note (newest first)
@@ -135,8 +135,13 @@ const MyNotes: React.FC = () => {
         setPage(1);
         // fetchNotes() will be called automatically by useEffect when page changes
       } else {
-        // Already on page 1, manually fetch to see the new note
-        await fetchNotes();
+        // Already on page 1, add the new note to state immediately
+        // This ensures the note is in state when the SSE title update arrives
+        setNotes(prevNotes => [newNote, ...prevNotes.slice(0, pageSize - 1)]);
+        setTotalNotes(prev => prev + 1);
+        
+        // Then fetch to ensure we have the correct list
+        fetchNotes();
       }
 
       // Show success toast
