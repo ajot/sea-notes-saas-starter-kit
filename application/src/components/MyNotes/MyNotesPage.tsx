@@ -73,16 +73,26 @@ const MyNotes: React.FC = () => {
 
   // Handle real-time title updates via SSE
   const handleTitleUpdate = useCallback((noteId: string, newTitle: string) => {
-    setNotes(prevNotes => 
-      prevNotes.map(note => 
+    console.log('SSE Title Update Received:', { noteId, newTitle });
+    console.log('Current notes:', notes.map(n => ({ id: n.id, title: n.title })));
+    
+    setNotes(prevNotes => {
+      const noteExists = prevNotes.some(note => note.id === noteId);
+      console.log('Note exists in state:', noteExists);
+      
+      return prevNotes.map(note => 
         note.id === noteId 
           ? { ...note, title: newTitle }
           : note
-      )
-    );
+      );
+    });
     
     // Add to recently updated tracking for visual indicator
-    setRecentlyUpdatedTitles(prev => new Set(prev).add(noteId));
+    setRecentlyUpdatedTitles(prev => {
+      const newSet = new Set(prev).add(noteId);
+      console.log('Recently updated titles:', Array.from(newSet));
+      return newSet;
+    });
 
     // Clear any existing timeout for this noteId
     if (timeoutRef.current[noteId]) {
